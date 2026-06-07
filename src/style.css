@@ -1,0 +1,69 @@
+/*
+  Tailwind v4 entry point.
+  The single @import replaces the old @tailwind base / components / utilities
+  directives from v3. All Tailwind utilities are available after this line.
+*/
+@import "tailwindcss";
+
+/*
+  Reset body/html so the full-screen layout in CommandCenter.vue
+  fills the viewport with zero bleed margin or scroll.
+*/
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Stagger-reveal animation — applied to each major section inside agent summaries.
+   Elements start invisible and slide up into place; animation-delay is set inline
+   so each section enters after the previous one. The `both` fill-mode keeps elements
+   invisible before their delay fires and visible after the animation ends. */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(7px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+.stagger-item {
+  animation: fade-up 0.48s ease-out both;
+}
+
+/* Animated dashed line travelling along topology connections */
+@keyframes dash-travel {
+  to { stroke-dashoffset: -9; }
+}
+.animate-dash-flow {
+  stroke-dasharray: 5 4;
+  animation: dash-travel 0.55s linear infinite;
+}
+
+/* Reverse-direction stream for bidirectional data loops */
+@keyframes dash-travel-reverse {
+  to { stroke-dashoffset: 9; }
+}
+.animate-dash-flow-reverse {
+  stroke-dasharray: 5 4;
+  animation: dash-travel-reverse 0.55s linear infinite;
+}
+
+/* Expanding ring pulse — radiates outward from processing nodes */
+@keyframes ring-pulse-out {
+  0%   { transform: scale(1);   opacity: 0.85; }
+  80%  { transform: scale(2.1); opacity: 0;    }
+  100% { transform: scale(2.1); opacity: 0;    }
+}
+.animate-ring-expand {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ring-pulse-out 1.6s ease-out infinite;
+}
+
+/* CTA button ambient glow pulse */
+@keyframes cta-glow {
+  0%, 100% { box-shadow: 0 4px 18px rgba(99, 102, 241, 0.32); }
+  50%       { box-shadow: 0 4px 30px rgba(99, 102, 241, 0.58); }
+}
+.animate-cta-glow {
+  animation: cta-glow 2.5s ease-in-out infinite;
+}
