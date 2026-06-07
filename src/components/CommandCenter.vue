@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useDemoEngine } from '../composables/useDemoEngine.js'
 import OrchestrationMap from './OrchestrationMap.vue'
 
@@ -12,15 +12,94 @@ const {
 const progressPct = computed(() => Math.round(globalProgress.value * 100))
 const phaseLabel  = computed(() => currentPhase.value?.label ?? '')
 
+// ── Pre-flight state machine ──────────────────────────────────────────────────
+const uiStage         = ref('initial') // 'initial' | 'sliding' | 'active'
+const typedText       = ref('')
+const showWave        = ref(false)
+const isPreflighting  = ref(false)
+const spawnedAgentIds = ref([])
+
+const TASK_TEXT = 'Create a go-to-market plan for a new gaming chair'
+
+// Transform-origins mapped to each agent's pentagon node position (cellular mitosis effect)
+const PANEL_ORIGINS = {
+  research: 'top right',
+  market:   'bottom right',
+  product:  'bottom left',
+  creative: 'center left',
+  finance:  'top center',
+}
+
+// Override all agent states to idle until pipeline is released in 'active' stage
+const effectiveAgentStates = computed(() => {
+  if (uiStage.value !== 'active') {
+    return Object.fromEntries(
+      Object.keys(agentStates.value).map(id => [id, { status: 'idle', depthState: 'normal' }])
+    )
+  }
+  return agentStates.value
+})
+
+function delay(ms) { return new Promise(res => setTimeout(res, ms)) }
+
+async function runPreFlight() {
+  if (isPreflighting.value || uiStage.value !== 'initial') return
+  isPreflighting.value = true
+  typedText.value = ''
+  spawnedAgentIds.value = []
+
+  // Start wave and typing loop simultaneously
+  showWave.value = true
+  for (let i = 1; i <= TASK_TEXT.length; i++) {
+    typedText.value = TASK_TEXT.slice(0, i)
+    await delay(44)
+  }
+
+  // Hold 500ms after typing completes — panel stays static
+  await delay(500)
+
+  // Commander panel glides from center to its grid position
+  uiStage.value = 'sliding'
+
+  // Fire-and-forget staggered spawn — panels burst outward along the commander's line of flight
+  const SPAWN_DELAYS = [300, 450, 600, 750, 900]
+  AGENTS.forEach((agent, i) => {
+    setTimeout(() => {
+      spawnedAgentIds.value = [...spawnedAgentIds.value, agent.id]
+    }, SPAWN_DELAYS[i])
+  })
+
+  // Wait for slide (1400ms) + last spawn (1000ms) + settle, then release the pipeline
+  await delay(1600)
+  uiStage.value = 'active'
+  showWave.value = false
+  isPreflighting.value = false
+  startDemo()
+}
+
+function handlePlayPause() {
+  if (uiStage.value === 'initial') { runPreFlight(); return }
+  if (isPlaying.value) { pauseDemo() } else { startDemo() }
+}
+
+function handleReset() {
+  uiStage.value         = 'initial'
+  typedText.value       = ''
+  showWave.value        = false
+  isPreflighting.value  = false
+  spawnedAgentIds.value = []
+  resetDemo()
+}
+
 // ── Depth-state → panel class map ────────────────────────────────────────────
 const DEPTH_CLASSES = {
-  foreground: 'scale-[1.02] z-20 bg-white/75 backdrop-blur-xl border border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.35)] opacity-100',
-  normal:     'scale-100    z-10 bg-white/85 backdrop-blur-xl border border-white/30 shadow-[0_12px_35px_rgba(0,0,0,0.25)] opacity-90',
-  background: 'scale-[0.98] z-0  bg-green-500 backdrop-blur-md  border border-white/20 shadow-[0_6px_20px_rgba(0,0,0,0.20)] opacity-100',
+  foreground: 'scale-[1.05] z-20 bg-white/75 backdrop-blur-xl border border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.35)] opacity-100',
+  normal:     'scale-[1.0]    z-10 bg-white/85 backdrop-blur-xl border border-white/30 shadow-[0_12px_35px_rgba(0,0,0,0.25)] opacity-90',
+  background: 'scale-[0.92] z-0  bg-white/50 backdrop-blur-md  border border-white/20 shadow-[0_6px_20px_rgba(0,0,0,0.20)] opacity-75',
 }
 
 function getAgentState(id) {
-  return agentStates.value[id] ?? { status: 'idle', depthState: 'normal' }
+  return effectiveAgentStates.value[id] ?? { status: 'idle', depthState: 'normal' }
 }
 function depthClasses(id) {
   return DEPTH_CLASSES[getAgentState(id).depthState] ?? DEPTH_CLASSES.normal
@@ -115,15 +194,16 @@ const AGENTS = [
 <template>
   <div
     class="relative w-screen h-screen overflow-hidden flex flex-col
-           bg-gradient-to-tr from-slate-200 via-slate-50 to-slate-950"
+           bg-gradient-to-r from-slate-200 via-slate-200 to-slate-200
+           "
   >
 
     <!-- Ambient orbs -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-      <div class="absolute -top-48 -left-48 w-[580px] h-[580px] rounded-full bg-blue-500/[0.08] blur-3xl" />
-      <div class="absolute -bottom-48 -right-48 w-[580px] h-[580px] rounded-full bg-violet-500/[0.08] blur-3xl" />
-      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-                  w-[720px] h-[320px] rounded-full bg-indigo-500/[0.05] blur-3xl" />
+      <div class="absolute -top-48 -left-48 w-[580px] h-[580px] rounded-full bg-teal-500/[0.07] blur-3xl" />
+      <div class="absolute top-50 -right-48 w-[880px] h-[880px] rounded-full bg-indigo-500/[0.06] blur-3xl" />
+      <div class="absolute top-3/4 left-1/2 -translate-x-1/2 -translate-y-1/2
+                  w-[1020px] h-[820px] rounded-full bg-slate-500/[0.09] blur-3xl" />
     </div>
 
     <!-- ====================================================================
@@ -191,24 +271,22 @@ const AGENTS = [
     <!-- ====================================================================
          MAIN — 6-column flex row
     ===================================================================== -->
-    <main class="relative z-10 flex-1 flex items-stretch px-4 pt-4 pb-14 gap-4 overflow-hidden">
+    <main class="relative z-10 flex-1 flex items-stretch px-8 pt-8 pb-20 gap-8 overflow-hidden">
 
       <!-- ==================================================================
            COLUMN 0 — COMMANDER NODE
            Pentagon constellation map, animated data lines, completion CTA
       =================================================================== -->
+
       <div
         class="w-[360px] flex-none flex flex-col overflow-hidden
                rounded-2xl border border-slate-700/60
                bg-slate-900/95 backdrop-blur-2xl
                shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_20px_50px_rgba(0,0,0,0.5)]"
+        :style="uiStage === 'initial'
+? { transform: 'translateX(calc(50vw - 50% - 24px))' }
+          : { transform: 'translateX(0)', transition: 'transform 1.4s cubic-bezier(0.25, 1, 0.3, 1)' }"
       >
-<!-- <div
-  class="w-[360px] flex-none flex flex-col overflow-hidden
-         rounded-2xl border border-slate-800/80
-         bg-slate-900/95 backdrop-blur-2xl
-         shadow-[0_20px_50px_rgba(0,0,0,0.6)]"
-> -->
         <!-- Indigo accent stripe -->
         <div class="h-[3px] bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-400 shrink-0" />
 
@@ -232,8 +310,62 @@ const AGENTS = [
           </div>
         </div>
 
-        <!-- Active task -->
-        <div class="px-3 pt-2 pb-2 shrink-0 border-b border-slate-700/40">
+        <!-- Pre-flight: prompt typing area -->
+        <div
+          v-if="uiStage === 'initial' || uiStage === 'sliding'"
+          class="px-3 pt-2.5 pb-2.5 shrink-0 border-b border-slate-700/40 flex"
+        >
+          <div class="flex-grow rounded-lg bg-slate-800/70 border border-slate-600/40 ring-1 ring-inset ring-white/5
+                      px-2.5 py-2 flex items-start gap-1.5">
+            <svg class="w-2.5 h-2.5 text-indigo-400 shrink-0 mt-[1px]" fill="none"
+                 stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+            </svg>
+            <p class="text-[11px] font-mono text-slate-200 leading-snug flex-1 min-w-0 break-words">
+              {{ typedText }}<span
+                v-if="typedText.length < TASK_TEXT.length"
+                class="inline-block w-[7px] h-[11px] bg-indigo-400 animate-pulse rounded-[1px] ml-px align-middle"
+              />
+            </p>
+          </div>
+        <Transition
+          enter-active-class="transition-all duration-500 ease-out"
+          enter-from-class="opacity-0 translate-y-1"
+          enter-to-class="opacity-100 translate-y-0"
+        >
+          <div
+            v-if="showWave && (uiStage === 'initial' || uiStage === 'sliding')"
+            class="px-3 pt-2.5 pb-2.5 shrink-0 border-b border-slate-700/40"
+          >
+            <!-- <p class="text-[7px] font-bold text-indigo-400/50 uppercase tracking-[0.18em] mb-2 font-mono">
+              ◎ Processing prompt...
+            </p> -->
+            <div class="flex items-end justify-center gap-[2px] h-8">
+              <div
+                v-for="n in 8" :key="n"
+                class="w-[3px] bg-indigo-400/70 rounded-full shrink-0"
+                :style="{
+                  animationName: 'bar-eq',
+                  animationDuration: `${240 + ((n * 97) % 440)}ms`,
+                  animationDelay: `${(n * 67) % 500}ms`,
+                  animationIterationCount: 'infinite',
+                  animationTimingFunction: 'ease-in-out',
+                }"
+              />
+            </div>
+          </div>
+        </Transition>          
+        </div>
+
+        <!-- Pre-flight: listening wave -->
+
+
+        <!-- Post-flight: active task -->
+        <div
+          v-if="uiStage !== 'initial' && uiStage !== 'sliding'"
+          class="px-3 pt-2 pb-2 shrink-0 border-b border-slate-700/40"
+        >
           <div class="rounded-lg bg-slate-800/70 border border-slate-600/40 ring-1 ring-inset ring-white/5
                       px-2.5 py-2 flex items-start gap-1.5">
             <svg class="w-2.5 h-2.5 text-indigo-400 shrink-0 mt-[1px]" fill="none"
@@ -248,14 +380,20 @@ const AGENTS = [
         </div>
 
         <!-- ── Pentagon Constellation Map → OrchestrationMap component ──── -->
-        <div class="flex-1 min-h-0 overflow-hidden px-4 pt-1 pb-0 ">
+        <!-- <div class="flex-1 min-h-0 overflow-hidden px-4 pt-1 pb-0 ">
           <OrchestrationMap
             :agents="AGENTS"
-            :agent-states="agentStates"
+            :agent-states="effectiveAgentStates"
             :current-phase-index="currentPhaseIndex"
             :global-progress="globalProgress"
           />
-        </div>
+        </div> -->
+<OrchestrationMap
+  :agents="AGENTS"
+  :agent-states="uiStage === 'active' ? agentStates : Object.fromEntries(spawnedAgentIds.map(id => [id, { status: 'idle' }]))"
+  :current-phase-index="currentPhaseIndex"
+  :global-progress="globalProgress"
+  :ui-stage="uiStage" />      
 
       </div>
       <!-- /Commander Node -->
@@ -264,12 +402,21 @@ const AGENTS = [
            COLUMNS 1-5 — AGENT PANELS
       =================================================================== -->
       <div
-        v-for="agent in AGENTS"
+        v-for="(agent, idx) in AGENTS"
         :key="agent.id"
         class="flex-1 flex flex-col min-w-0 overflow-hidden
                rounded-xl backdrop-blur-md border
-               transition-all duration-500 ease-in-out"
+               transition-all duration-500 ease-in-out mx-2"
         :class="depthClasses(agent.id)"
+        :style="{
+          transformOrigin: 'center center',
+          ...(uiStage === 'active'
+            ? {}
+            : spawnedAgentIds.includes(agent.id)
+              ? { transform: 'scale(1)', opacity: '1', transition: 'all 650ms cubic-bezier(0.25, 1, 0.5, 1)' }
+              : { transform: 'scale(0.75)', opacity: '0', transition: 'none', pointerEvents: 'none' }
+          ),
+        }"
       >
 
         <!-- Accent strip -->
@@ -293,7 +440,7 @@ const AGENTS = [
             <div v-if="getAgentState(agent.id).status === 'idle'"
                  class="flex items-center gap-1 mt-1 shrink-0">
               <span class="w-1.5 h-1.5 rounded-full bg-slate-300" />
-              <span class="text-[9px] font-semibold text-slate-300 uppercase tracking-wide">Idle</span>
+              <span class="text-[9px] font-semibold text-slate-300 uppercase tracking-wide">Waiting</span>
             </div>
 
             <!-- processing — badge colour follows sub-state -->
@@ -346,7 +493,7 @@ const AGENTS = [
               key="idle"
               class="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6"
             >
-              <div class="w-10 h-10 rounded-full bg-slate-100/80 border border-slate-200/60
+              <div class="w-10 h-10 rounded-full bg-slate-100/80 border border-slate-300/60
                           flex items-center justify-center">
                 <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor"
                      stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
@@ -354,8 +501,8 @@ const AGENTS = [
                         d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
                 </svg>
               </div>
-              <p class="text-xs text-slate-300 font-medium text-center leading-relaxed">
-                Waiting for<br />command...
+              <p class="text-sm text-slate-300 font-medium text-center leading-relaxed">
+                Waiting...
               </p>
             </div>
 
@@ -406,15 +553,18 @@ const AGENTS = [
                 v-for="item in stackLines(agent.id)"
                 :key="item.originalIndex"
                 class="absolute left-4 right-4 p-3
-                       bg-white/90 border rounded-xl
+                       border rounded-xl
                        flex items-start gap-2
-                       transition-all duration-700 ease-in-out"
+                       transition-all duration-700 ease-in-out text-white"
+  :style="{
+    backgroundColor: `${agent.svgColor}E6`
+  }"                       
                 :class="STACK_DEPTH[item.stackIndex] ?? 'opacity-0 pointer-events-none bottom-56 z-[-1]'"
               >
-                <span class="text-emerald-500 font-mono leading-snug shrink-0">›</span>
-                <span class="break-words min-w-0 leading-snug text-sm">{{ item.text }}<span
+                <span class=" font-mono leading-snug shrink-0">›</span>
+                <span class=" break-words min-w-0 leading-snug text-sm">{{ item.text }}<span
                   v-if="item.stackIndex === 0 && agentIsStreaming(agent.id)"
-                  class="inline-block w-[6px] h-[10px] bg-emerald-400 animate-pulse rounded-[1px] ml-1 align-middle"
+                  class="inline-block w-[6px] h-[10px] bg-white animate-pulse rounded-[1px] ml-1 align-middle"
                 /></span>
               </div>
 
@@ -726,7 +876,7 @@ const AGENTS = [
                bg-blue-500 hover:bg-blue-600 active:bg-blue-700
                text-white shadow-sm shadow-blue-500/30 transition-colors duration-150"
         :aria-label="isPlaying ? 'Pause' : 'Play'"
-        @click="isPlaying ? pauseDemo() : startDemo()"
+        @click="handlePlayPause()"
       >
         <svg v-if="!isPlaying" class="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M8 5v14l11-7z" />
@@ -740,7 +890,7 @@ const AGENTS = [
         class="w-8 h-8 rounded-lg flex items-center justify-center
                bg-slate-800/80 hover:bg-slate-700 text-slate-400 transition-colors duration-150"
         aria-label="Reset"
-        @click="resetDemo()"
+        @click="handleReset()"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round"

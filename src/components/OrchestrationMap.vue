@@ -1,12 +1,20 @@
 <script setup>
 import { computed } from 'vue'
 
+// const props = defineProps({
+//   agents:            { type: Array,  required: true },
+//   agentStates:       { type: Object, required: true },
+//   currentPhaseIndex: { type: Number, default: 0     },
+//   globalProgress:    { type: Number, default: 0     },
+// })
 const props = defineProps({
   agents:            { type: Array,  required: true },
   agentStates:       { type: Object, required: true },
   currentPhaseIndex: { type: Number, default: 0     },
   globalProgress:    { type: Number, default: 0     },
+  uiStage:           { type: String, default: 'initial' } // Add this line
 })
+
 
 // ── Pentagon geometry ─────────────────────────────────────────────────────────
 const PENTA_NODES = {
@@ -46,7 +54,7 @@ function nodeGroupStyle(id) {
   if (s === 'idle') {
     return { 
       ...base, 
-      transform: 'scale(0.92)', // Changed from 0.85 (less acute depth step)
+      transform: 'scale(0.9)', // Changed from 0.85 (less acute depth step)
       opacity: 0.45,            // Slightly more visible
       filter: 'blur(1.2px)'     // Smooth inline CSS blur instead of the SVG url filter
     }
@@ -56,10 +64,10 @@ function nodeGroupStyle(id) {
   if (s === 'processing') {
     return { 
       ...base, 
-      transform: 'scale(1.15)', // Changed from 1.25 (keeps it closely bounded)
+      transform: 'scale(1.2)', // Changed from 1.25 (keeps it closely bounded)
       opacity: 1,
       filter: 'blur(0px)',      // Animates cleanly to zero blur!
-      animation: 'sphere-breathe 2.5s ease-in-out infinite' 
+      animation: 'sphere-breathe 1.5s ease-in-out infinite' 
     }
   }
 
@@ -114,200 +122,156 @@ const showGtmLabel = computed(() => props.globalProgress >= 1.0)
   <div class="w-full px-4 py-2">
     
     <!-- <div class="w-full bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.12] p-4 shadow-[0_12px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]">    -->
-<div class="w-full bg-white/90 rounded-2xl p-4 
+<div class="w-full bg-white/80 rounded-2xl p-4 
 
-
-              ring-1 ring-inset ring-white/60
-              shadow-[inset_4px_8px_60px_rgba(0,0,0,0.3),inset_-12px_-12px_12px_rgba(256,256,256,1)]">
+              border border-2 border-white/[0.9]
+              shadow-[inset_4px_8px_60px_rgba(0,0,0,0),inset_0px_0px_160px_rgba(256,256,256,1)]">
 
       <div class="flex items-center gap-2 mb-4 px-1 select-none">
         <span class="relative flex h-2 w-2">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
           <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
         </span>
-        <h3 class="text-[10px] font-bold tracking-widest text-slate-400 uppercase font-mono">
-          Team Status // STANDING BY
+        <h3 class="text-[10px] font-bold tracking-widest text-slate-700 uppercase font-mono">
+          Team Status: [...]
         </h3>
       </div>
 
-      <div class="w-full flex items-center justify-center">
-        <svg
-          viewBox="0 0 220 290"
-          width="100%"
-          height="100%"
-          preserveAspectRatio="xMidYMid meet"
-          style="overflow: visible;"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <filter id="sphere-shadow" x="-30%" y="-30%" width="160%" height="160%">
-              <feDropShadow dx="0" dy="14" stdDeviation="7" flood-color="#000000" flood-opacity="0.8" />
-            </filter>        
-            <filter id="dof-blur" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="2.5" />
-            </filter>            
-            <radialGradient id="rg-research" cx="35%" cy="30%" r="65%">
-              <stop offset="0%"   stop-color="#EFF6FF" />
-              <stop offset="28%"  stop-color="#93C5FD" />
-              <stop offset="68%"  stop-color="#3B82F6" />
-              <stop offset="100%" stop-color="#1E3A8A" />
-            </radialGradient>
-            <radialGradient id="rg-market" cx="35%" cy="30%" r="65%">
-              <stop offset="0%"   stop-color="#F5F3FF" />
-              <stop offset="28%"  stop-color="#A78BFA" />
-              <stop offset="68%"  stop-color="#7C3AED" />
-              <stop offset="100%" stop-color="#2E1065" />
-            </radialGradient>
-            <radialGradient id="rg-product" cx="35%" cy="30%" r="65%">
-              <stop offset="0%"   stop-color="#ECFDF5" />
-              <stop offset="28%"  stop-color="#6EE7B7" />
-              <stop offset="68%"  stop-color="#059669" />
-              <stop offset="100%" stop-color="#022C22" />
-            </radialGradient>
-            <radialGradient id="rg-creative" cx="35%" cy="30%" r="65%">
-              <stop offset="0%"   stop-color="#FFF7ED" />
-              <stop offset="28%"  stop-color="#FDBA74" />
-              <stop offset="68%"  stop-color="#EA580C" />
-              <stop offset="100%" stop-color="#431407" />
-            </radialGradient>
-            <radialGradient id="rg-finance" cx="35%" cy="30%" r="65%">
-              <stop offset="0%"   stop-color="#FFF1F2" />
-              <stop offset="28%"  stop-color="#FDA4AF" />
-              <stop offset="68%"  stop-color="#E11D48" />
-              <stop offset="100%" stop-color="#4C0519" />
-            </radialGradient>
-          </defs>
+      <div class="w-full flex items-center justify-center mt-8">
+<svg
+  viewBox="0 0 220 240"
+  width="100%"
+  height="100%"
+  preserveAspectRatio="xMidYMid meet"
+  style="overflow: visible;"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <filter id="sphere-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="14" stdDeviation="7" flood-color="#000000" flood-opacity="0.8" />
+    </filter>        
+    <filter id="dof-blur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.5" />
+    </filter>            
+    <radialGradient id="rg-research" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="#EFF6FF" /><stop offset="28%" stop-color="#93C5FD" /><stop offset="68%" stop-color="#3B82F6" /><stop offset="100%" stop-color="#1E3A8A" /></radialGradient>
+    <radialGradient id="rg-market" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="#F5F3FF" /><stop offset="28%" stop-color="#A78BFA" /><stop offset="68%" stop-color="#7C3AED" /><stop offset="100%" stop-color="#2E1065" /></radialGradient>
+    <radialGradient id="rg-product" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="#ECFDF5" /><stop offset="28%" stop-color="#6EE7B7" /><stop offset="68%" stop-color="#059669" /><stop offset="100%" stop-color="#022C22" /></radialGradient>
+    <radialGradient id="rg-creative" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="#FFF7ED" /><stop offset="28%" stop-color="#FDBA74" /><stop offset="68%" stop-color="#EA580C" /><stop offset="100%" stop-color="#431407" /></radialGradient>
+    <radialGradient id="rg-finance" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="#FFF1F2" /><stop offset="28%" stop-color="#FDA4AF" /><stop offset="68%" stop-color="#E11D48" /><stop offset="100%" stop-color="#4C0519" /></radialGradient>
+  </defs>
 
-          <line x1="190" y1="69"  x2="179" y2="171" stroke="#334155" stroke-width="0.8" opacity="0.15" />
-          <line x1="179" y1="171" x2="79"  y2="192" stroke="#334155" stroke-width="0.8" opacity="0.15" />
-          <line x1="79"  y1="192" x2="26"  y2="103" stroke="#334155" stroke-width="0.8" opacity="0.15" />
-          <line x1="26"  y1="103" x2="95"  y2="26"  stroke="#334155" stroke-width="0.8" opacity="0.15" />
-          <line x1="95"  y1="26"  x2="190" y2="69"  stroke="#334155" stroke-width="0.8" opacity="0.15" />
+<g 
+  v-for="(agent, i) in agents" 
+  :key="'leg-' + agent.id"
+  :opacity="agentStates[agent.id] ? 0 : 1"
+  :style="{
+    transform: agentStates[agent.id] ? 'translateX(60px)' : 'translateX(0px)',
+    transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+  }"
+>
+  <circle
+    cx="18 "
+    :cy="14 + i * 48"
+    r="8"
+    :fill="`url(#rg-${agent.id})`"
+  />
+  
+  <text
+    x="36"
+    :y="17 + i * 48"
+    text-anchor="start"
+    font-size="9"
+    font-weight="600"
+    letter-spacing="0.02em"
+    font-family="ui-sans-serif, system-ui, sans-serif"
+    fill="#64748B"
+    
+  >
+    {{ capitalize(agent.id).toUpperCase() }}
+  </text>
+</g>
 
-          <line x1="190" y1="69"  x2="79"  y2="192" stroke="#334155" stroke-width="0.7" opacity="0.12" />
-          <line x1="190" y1="69"  x2="26"  y2="103" stroke="#334155" stroke-width="0.7" opacity="0.12" />
-          <line x1="179" y1="171" x2="26"  y2="103" stroke="#334155" stroke-width="0.7" opacity="0.12" />
-          <line x1="179" y1="171" x2="95"  y2="26"  stroke="#334155" stroke-width="0.7" opacity="0.12" />
-          <line x1="79"  y1="192" x2="95"  y2="26"  stroke="#334155" stroke-width="0.7" opacity="0.12" />
 
-          <template v-for="line in topologyLines" :key="line.id">
-            <line
-              :x1="line.x1" :y1="line.y1" :x2="line.x2" :y2="line.y2"
-              stroke="#818CF8"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              class="animate-dash-flow"
-            />
-            <line
-              v-if="line.bidir"
-              :x1="line.x1" :y1="line.y1" :x2="line.x2" :y2="line.y2"
-              stroke="#C4B5FD"
-              stroke-width="1"
-              stroke-linecap="round"
-              class="animate-dash-flow-reverse"
-            />
-          </template>
+  <g
+:opacity="agentStates['finance'] ? 1 : 0"
+    style="transition: opacity 0.8s cubic-bezier(0.25, 1, 0.3, 1);"
+  >
+    <line x1="190" y1="69"  x2="179" y2="171" stroke="#334155" stroke-width="0.8" opacity="0.15" />
+    <line x1="179" y1="171" x2="79"  y2="192" stroke="#334155" stroke-width="0.8" opacity="0.15" />
+    <line x1="79"  y1="192" x2="26"  y2="103" stroke="#334155" stroke-width="0.8" opacity="0.15" />
+    <line x1="26"  y1="103" x2="95"  y2="26"  stroke="#334155" stroke-width="0.8" opacity="0.15" />
+    <line x1="95"  y1="26"  x2="190" y2="69"  stroke="#334155" stroke-width="0.8" opacity="0.15" />
 
-          <g
-            v-for="agent in agents"
-            :key="agent.id"
-            :style="nodeGroupStyle(agent.id)"
-          >
-            <!-- <circle
-              v-if="status(agent.id) === 'completed'"
-              :cx="pos(agent.id).x"
-              :cy="pos(agent.id).y"
-              r="36"
-              :stroke="ringColor(agent.id)"
-              stroke-width="1"
-              fill="none"
-              opacity="0.5"
-            /> -->
-<!-- 
-            <circle
-              v-if="status(agent.id) === 'processing'"
-              :cx="pos(agent.id).x"
-              :cy="pos(agent.id).y"
-              r="26"
-              :stroke="ringColor(agent.id)"
-              stroke-width="1.5"
-              fill="none"
-              class="animate-ring-expand"
-            <!-- /> -->
-            <!-- <circle
-              v-if="status(agent.id) === 'processing'"
-              :cx="pos(agent.id).x"
-              :cy="pos(agent.id).y"
-              r="26"
-              :stroke="ringColor(agent.id)"
-              stroke-width="1.5"
-              fill="none"
-              class="animate-ring-expand"
-              style="animation-delay: 0.8s"
-            /> --> -->
+    <line x1="190" y1="69"  x2="79"  y2="192" stroke="#334155" stroke-width="0.7" opacity="0.12" />
+    <line x1="190" y1="69"  x2="26"  y2="103" stroke="#334155" stroke-width="0.7" opacity="0.12" />
+    <line x1="179" y1="171" x2="26"  y2="103" stroke="#334155" stroke-width="0.7" opacity="0.12" />
+    <line x1="179" y1="171" x2="95"  y2="26"  stroke="#334155" stroke-width="0.7" opacity="0.12" />
+    <line x1="79"  y1="192" x2="95"  y2="26"  stroke="#334155" stroke-width="0.7" opacity="0.12" />
 
-            <circle
-              :cx="pos(agent.id).x"
-              :cy="pos(agent.id).y"
-              r="26"
-              :fill="`url(#rg-${agent.id})`"
-            />
+    <template v-for="line in topologyLines" :key="line.id">
+      <line
+        :x1="line.x1" :y1="line.y1" :x2="line.x2" :y2="line.y2"
+        stroke="#818CF8"
+        stroke-width="2"
+        stroke-linecap="round"
+        class="animate-dash-flow"
+      />
+      <line
+        v-if="line.bidir"
+        :x1="line.x1" :y1="line.y1" :x2="line.x2" :y2="line.y2"
+        stroke="#C4B5FD"
+        stroke-width="2"
+        stroke-linecap="round"
+        class="animate-dash-flow-reverse"
+      />
+    </template>
 
-            <ellipse
-              :cx="pos(agent.id).x - 7"
-              :cy="pos(agent.id).y - 8"
-              rx="7" ry="4.4"
-              fill="white"
-              opacity="0.4"
-            />
+    <g
+      v-for="agent in agents"
+      :key="agent.id"
+      :style="nodeGroupStyle(agent.id)"
+    >
+      <circle
+        :cx="pos(agent.id).x"
+        :cy="pos(agent.id).y"
+        r="26"
+        :fill="`url(#rg-${agent.id})`"
+      />
 
-            <path
-              v-if="status(agent.id) === 'completed'"
-              :d="`M ${pos(agent.id).x - 10} ${pos(agent.id).y + 1}
-                   L ${pos(agent.id).x - 3}  ${pos(agent.id).y + 8}
-                   L ${pos(agent.id).x + 12} ${pos(agent.id).y - 9}`"
-              stroke="white"
-              stroke-width="3.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              fill="none"
-            />
+      <ellipse
+        :cx="pos(agent.id).x - 7"
+        :cy="pos(agent.id).y - 8"
+        rx="7" ry="4.4"
+        fill="white"
+        opacity="0"
+      />
 
-            <text
-              v-if="status(agent.id) !== 'completed'"
-              :x="pos(agent.id).x"
-              :y="pos(agent.id).y + 9"
-              text-anchor="middle"
-              font-size="22"
-              style="pointer-events: none; user-select: none;"
-            >
-              {{ agent.icon }}
-            </text>
-          </g>
+      <path
+        v-if="status(agent.id) === 'completed'"
+        :d="`M ${pos(agent.id).x - 10} ${pos(agent.id).y + 1}
+             L ${pos(agent.id).x - 3}  ${pos(agent.id).y + 8}
+             L ${pos(agent.id).x + 12} ${pos(agent.id).y - 9}`"
+        stroke="white"
+        stroke-width="3.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        fill="none"
+      />
 
-          <g v-for="(agent, i) in agents" :key="'leg-' + agent.id">
-            <circle
-              :cx="18 + i * 46"
-              cy="255"
-              r="7"
-              :fill="`url(#rg-${agent.id})`"
-              :opacity="status(agent.id) === 'idle' ? 0.28 : 1"
-            />
-            <text
-              :x="18 + i * 46"
-              y="276"
-              text-anchor="middle"
-              font-size="9"
-              font-weight="700"
-              letter-spacing="0.05em"
-              font-family="ui-sans-serif, system-ui, sans-serif"
-              :fill="legendFill(agent.id)"
-            >
-              {{ capitalize(agent.id) }}
-            </text>
-          </g>
-        </svg>
+      <text
+        v-if="status(agent.id) !== 'completed'"
+        :x="pos(agent.id).x"
+        :y="pos(agent.id).y + 9"
+        text-anchor="middle"
+        font-size="22"
+        style="pointer-events: none; user-select: none;"
+      >
+        {{ agent.icon }}
+      </text>
+    </g>
+  </g>
+</svg>
       </div>
     </div>
 
@@ -319,11 +283,11 @@ const showGtmLabel = computed(() => props.globalProgress >= 1.0)
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
-      <div v-if="showGtmLabel" class="w-full mt-4 pt-2">
+      <div v-if="showGtmLabel" class="w-full mt-8 pt-2">
         <button
-          class="w-full rounded-xl px-3 py-2.5
+          class="w-full rounded-xl px-3 py-4
                  bg-gradient-to-r from-indigo-500 to-violet-600
-                 text-white text-[10px] font-bold tracking-wide text-center
+                 text-white text-[12px] font-bold tracking-wide text-center
                  shadow-lg shadow-indigo-500/30
                  ring-1 ring-indigo-400/30
                  hover:shadow-indigo-500/50 hover:scale-[1.02]

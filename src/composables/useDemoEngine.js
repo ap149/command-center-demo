@@ -182,7 +182,7 @@ export const SEQUENCE = [
     index: 0,
     label: 'Research Ingestion',
     from:  0.0,
-    to:    0.25,
+    to:    0.19,
     agents: {
       research: { status: 'processing', depthState: 'foreground' },
       market:   { status: 'idle',       depthState: 'normal'     },
@@ -196,8 +196,8 @@ export const SEQUENCE = [
     // Research completes; its output is passed directly to Market.
     index: 1,
     label: 'Data Handoff → Market',
-    from:  0.25,
-    to:    0.30,
+    from:  0.19,
+    to:    0.28,
     agents: {
       research: { status: 'completed',  depthState: 'background' },
       market:   { status: 'processing', depthState: 'foreground' },
@@ -212,8 +212,8 @@ export const SEQUENCE = [
     // and market positioning. Topology map draws a live bidirectional link.
     index: 2,
     label: 'Creative Synthesis Phase',
-    from:  0.30,
-    to:    0.50,
+    from:  0.27,
+    to:    0.40,
     agents: {
       research: { status: 'completed',  depthState: 'background' },
       market:   { status: 'processing', depthState: 'foreground' },
@@ -227,8 +227,8 @@ export const SEQUENCE = [
     // Product and Finance run simultaneously, negotiating margins and GTM fit.
     index: 3,
     label: 'Commercial Viability Phase',
-    from:  0.50,
-    to:    0.75,
+    from:  0.40,
+    to:    0.65,
     agents: {
       research: { status: 'completed',  depthState: 'background' },
       market:   { status: 'completed',  depthState: 'background' },
@@ -243,8 +243,8 @@ export const SEQUENCE = [
     // integration. Topology map shows four converging lines to the Product node.
     index: 4,
     label: 'Synthesis / Integration Phase',
-    from:  0.75,
-    to:    0.90,
+    from:  0.65,
+    to:    0.85,
     agents: {
       research: { status: 'completed',  depthState: 'background' },
       market:   { status: 'completed',  depthState: 'background' },
@@ -258,7 +258,7 @@ export const SEQUENCE = [
     // All agents complete and equalise to neutral depth.
     index: 5,
     label: 'Aggregate Closure',
-    from:  0.90,
+    from:  0.85,
     to:    1.0,
     agents: {
       research: { status: 'completed', depthState: 'normal' },

@@ -67,3 +67,9 @@ body {
 .animate-cta-glow {
   animation: cta-glow 2.5s ease-in-out infinite;
 }
+
+/* Pre-flight listening wave — equalizer bars animate with pseudo-random heights */
+@keyframes bar-eq {
+  0%, 100% { height: 3px;  opacity: 0.35; }
+  50%       { height: 22px; opacity: 0.9;  }
+}
