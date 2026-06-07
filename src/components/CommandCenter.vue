@@ -83,6 +83,7 @@ function panelKey(agentId) {
   return processingSubState()
 }
 
+
 // ── Summary data ──────────────────────────────────────────────────────────────
 const MARKET_SEGMENTS = [
   { label: 'Core Gamers',    pct: 45, color: 'bg-violet-400' },
@@ -197,12 +198,17 @@ const AGENTS = [
            Pentagon constellation map, animated data lines, completion CTA
       =================================================================== -->
       <div
-        class="w-[200px] flex-none flex flex-col overflow-hidden
+        class="w-[360px] flex-none flex flex-col overflow-hidden
                rounded-2xl border border-slate-700/60
                bg-slate-900/95 backdrop-blur-2xl
                shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_20px_50px_rgba(0,0,0,0.5)]"
       >
-
+<!-- <div
+  class="w-[360px] flex-none flex flex-col overflow-hidden
+         rounded-2xl border border-slate-800/80
+         bg-slate-900/95 backdrop-blur-2xl
+         shadow-[0_20px_50px_rgba(0,0,0,0.6)]"
+> -->
         <!-- Indigo accent stripe -->
         <div class="h-[3px] bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-400 shrink-0" />
 
@@ -242,7 +248,7 @@ const AGENTS = [
         </div>
 
         <!-- ── Pentagon Constellation Map → OrchestrationMap component ──── -->
-        <div class="flex-1 min-h-0 overflow-hidden px-2 pt-1 pb-0">
+        <div class="flex-1 min-h-0 overflow-hidden px-4 pt-1 pb-0 ">
           <OrchestrationMap
             :agents="AGENTS"
             :agent-states="agentStates"

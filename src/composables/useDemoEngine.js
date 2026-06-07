@@ -12,7 +12,7 @@ const TOTAL_DURATION = 22_000 // ms  ← single source of truth for timeline len
 // AGENT IDs
 // Canonical list. Matches the `id` fields expected by the panel layer.
 // ─────────────────────────────────────────────────────────────────────────────
-export const AGENT_IDS = ['research', 'market', 'product', 'creative', 'finance']
+export const AGENT_IDS = ['Research', 'Market', 'Product', 'Creative', 'Finance']
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AGENT CONTENT
